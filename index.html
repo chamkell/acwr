@@ -307,6 +307,45 @@
             font-weight: 700;
             color: #374151;
         }
+        .program-card {
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            background: white;
+            transition: all 0.2s;
+        }
+        .program-card:hover {
+            border-color: #522d80;
+            box-shadow: 0 4px 12px rgba(82, 45, 128, 0.1);
+        }
+        .program-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        .program-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e5e7eb;
+        }
+        .program-stat {
+            text-align: center;
+        }
+        .program-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #522d80;
+        }
+        .program-stat-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
         .setup-banner {
             background: linear-gradient(135deg, #fef3c7, #fde68a);
             border: 3px solid #ca8a04;
@@ -383,12 +422,101 @@
                             <option value="OF">Outfielder</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>Assign Training Program (Optional)</label>
+                        <select id="player-program">
+                            <option value="">No Program</option>
+                        </select>
+                    </div>
                     <button class="btn-success" onclick="addPlayer()" style="width: 100%;">➕ Add Player</button>
                 </div>
                 
                 <div class="card">
                     <h3 style="margin-bottom: 1rem;">Player Roster</h3>
                     <div id="player-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRAMS TAB -->
+        <div id="programs-tab" class="hidden">
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem;">Create Training Program</h3>
+                    <div class="form-group">
+                        <label>Program Name</label>
+                        <input type="text" id="program-name" placeholder="e.g., Off-Season Starter, In-Season Reliever">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="program-desc" placeholder="Brief description of the program">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Position</label>
+                        <select id="program-position">
+                            <option value="SP">Starting Pitcher</option>
+                            <option value="RP">Relief Pitcher</option>
+                            <option value="C">Catcher</option>
+                            <option value="IF">Infielder</option>
+                            <option value="OF">Outfielder</option>
+                            <option value="All">All Positions</option>
+                        </select>
+                    </div>
+                    
+                    <h4 style="margin: 1.5rem 0 1rem;">Weekly Throwing Guidelines</h4>
+                    <div style="background: #eff6ff; padding: 1rem; border-radius: 0.5rem; border: 2px solid #bfdbfe; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label>Throws per Week</label>
+                            <input type="number" id="program-throws-week" placeholder="e.g., 150">
+                        </div>
+                        <div class="form-group">
+                            <label>High Intensity Throws (Z8-Z10) per Week</label>
+                            <input type="number" id="program-high-intensity" placeholder="e.g., 30">
+                        </div>
+                        <div class="form-group">
+                            <label>Target Workload per Week (AU)</label>
+                            <input type="number" id="program-workload" placeholder="e.g., 15.0" step="0.1">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Days Between High Intensity Sessions</label>
+                            <input type="number" id="program-rest-days" placeholder="e.g., 2">
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin: 1.5rem 0 1rem;">Zone Distribution Guidelines (%)</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.75rem;">Z1-Z3 (Warmup)</label>
+                            <input type="number" id="zone-low" placeholder="30" min="0" max="100">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.75rem;">Z4-Z6 (Moderate)</label>
+                            <input type="number" id="zone-mid" placeholder="40" min="0" max="100">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.75rem;">Z7-Z8 (High Intent)</label>
+                            <input type="number" id="zone-high" placeholder="20" min="0" max="100">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.75rem;">Z9-Z10 (Max Effort)</label>
+                            <input type="number" id="zone-max" placeholder="10" min="0" max="100">
+                        </div>
+                    </div>
+                    
+                    <button class="btn-success" onclick="window.saveProgram()" style="width: 100%;">💾 Save Program</button>
+                </div>
+                
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem;">Training Programs</h3>
+                    <div id="programs-list"></div>
+                    
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border: 2px solid #fbbf24; border-radius: 0.5rem;">
+                        <h4 style="color: #92400e; margin-bottom: 0.5rem;">📚 Quick Start Templates</h4>
+                        <button onclick="window.loadTemplate('sp-offseason')" class="btn-small" style="margin: 0.25rem;">SP Off-Season</button>
+                        <button onclick="window.loadTemplate('sp-inseason')" class="btn-small" style="margin: 0.25rem;">SP In-Season</button>
+                        <button onclick="window.loadTemplate('rp-inseason')" class="btn-small" style="margin: 0.25rem;">RP In-Season</button>
+                        <button onclick="window.loadTemplate('position-player')" class="btn-small" style="margin: 0.25rem;">Position Player</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1645,6 +1773,7 @@
 </body>
 
 </html>
+
 
 
 

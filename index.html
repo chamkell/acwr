@@ -481,7 +481,7 @@
             <div id="programs-list">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h2>Training Programs</h2>
-                    <button onclick="window.createNewProgram()" class="btn-success">+ Create New Program</button>
+                    <button onclick="createNewProgram()" class="btn-success">+ Create New Program</button>
                 </div>
                 <div id="programs-list-container"></div>
             </div>
@@ -489,10 +489,10 @@
             <div id="program-builder" class="hidden">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
-                        <button onclick="window.backToPrograms()" style="padding: 0.5rem 1rem; background: #d1d5db; color: #374151; border: none; border-radius: 0.5rem; cursor: pointer; margin-right: 1rem;">← Back</button>
+                        <button onclick="backToPrograms()" style="padding: 0.5rem 1rem; background: #d1d5db; color: #374151; border: none; border-radius: 0.5rem; cursor: pointer; margin-right: 1rem;">← Back</button>
                         <span style="font-size: 1.5rem; font-weight: 700; color: #522d80;" id="builder-program-name"></span>
                     </div>
-                    <button onclick="window.addWeek()" class="btn-success">+ Add Week</button>
+                    <button onclick="addWeek()" class="btn-success">+ Add Week</button>
                 </div>
                 <input type="hidden" id="current-program-id">
                 <div id="week-builder-container"></div>
@@ -2150,6 +2150,7 @@
 </body>
 
 </html>
+
 
 
 

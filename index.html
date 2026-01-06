@@ -1171,402 +1171,402 @@
 
         let programs = JSON.parse(localStorage.getItem('acwr_programs') || '[]');
         
-        // Program Builder Functions
-        window.createNewProgram = function() {
-            const name = prompt('Enter program name (e.g., "Thursday Starter Program")');
-            if (!name) return;
-            
-            const program = {
-                id: Date.now().toString(),
-                name,
-                description: '',
-                startDate: new Date().toISOString().split('T')[0],
-                weeks: [],
-                notes: ''
-            };
-            
-            programs.push(program);
-            localStorage.setItem('acwr_programs', JSON.stringify(programs));
-            loadPrograms();
-            editProgram(program.id);
-        }
-        
-        window.editProgram = function(id) {
-            const program = programs.find(p => p.id === id);
-            if (!program) return;
-            
-            document.getElementById('programs-list').classList.add('hidden');
-            document.getElementById('program-builder').classList.remove('hidden');
-            document.getElementById('builder-program-name').textContent = program.name;
-            document.getElementById('current-program-id').value = program.id;
-            
-            loadProgramBuilder(program);
-        }
-        
-        window.backToPrograms = function() {
-            document.getElementById('programs-list').classList.remove('hidden');
-            document.getElementById('program-builder').classList.add('hidden');
-            loadPrograms();
-        }
-        
-        window.loadProgramBuilder = function(program) {
-            const container = document.getElementById('week-builder-container');
-            
-            if (program.weeks.length === 0) {
-                container.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 2rem;">No weeks added yet. Click "Add Week" to start building your program.</p>';
-                return;
+            // Program Builder Functions
+            createNewProgram = function() {
+                const name = prompt('Enter program name (e.g., "Thursday Starter Program")');
+                if (!name) return;
+                
+                const program = {
+                    id: Date.now().toString(),
+                    name,
+                    description: '',
+                    startDate: new Date().toISOString().split('T')[0],
+                    weeks: [],
+                    notes: ''
+                };
+                
+                programs.push(program);
+                localStorage.setItem('acwr_programs', JSON.stringify(programs));
+                loadPrograms();
+                editProgram(program.id);
             }
             
-            container.innerHTML = program.weeks.map((week, weekIdx) => `
-                <div class="week-card" id="week-${weekIdx}">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h4 style="font-size: 1.1rem; color: #522d80;">Week ${weekIdx + 1}</h4>
-                        <div>
-                            <button onclick="duplicateWeek(${weekIdx})" class="btn-small" style="margin-right: 0.5rem;">📋 Duplicate</button>
-                            <button onclick="deleteWeek(${weekIdx})" class="btn-danger btn-small">Delete</button>
-                        </div>
-                    </div>
-                    <div class="week-days">
-                        ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, dayIdx) => {
-                            const dayData = week.days[dayIdx] || { type: 'rest', throws: [], notes: '' };
-                            return `
-                                <div class="day-card ${dayData.type === 'rest' ? 'rest-day' : ''}">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                        <strong style="font-size: 0.875rem;">${day}</strong>
-                                        <select onchange="changeDayType(${weekIdx}, ${dayIdx}, this.value)" style="padding: 0.25rem; font-size: 0.75rem;">
-                                            <option value="rest" ${dayData.type === 'rest' ? 'selected' : ''}>Rest</option>
-                                            <option value="bullpen" ${dayData.type === 'bullpen' ? 'selected' : ''}>Bullpen</option>
-                                            <option value="long-toss" ${dayData.type === 'long-toss' ? 'selected' : ''}>Long Toss</option>
-                                            <option value="flat-ground" ${dayData.type === 'flat-ground' ? 'selected' : ''}>Flat Ground</option>
-                                            <option value="game" ${dayData.type === 'game' ? 'selected' : ''}>Game Day</option>
-                                            <option value="recovery" ${dayData.type === 'recovery' ? 'selected' : ''}>Recovery</option>
-                                        </select>
-                                    </div>
-                                    ${dayData.type !== 'rest' ? `
-                                        <div id="day-${weekIdx}-${dayIdx}-details">
-                                            <div style="font-size: 0.75rem; margin-bottom: 0.5rem;">
-                                                <strong>Throws:</strong>
-                                                <button onclick="addThrowGroup(${weekIdx}, ${dayIdx})" style="padding: 0.125rem 0.5rem; font-size: 0.7rem; margin-left: 0.5rem;">+ Add</button>
-                                            </div>
-                                            <div id="throws-${weekIdx}-${dayIdx}">
-                                                ${(dayData.throws || []).map((throwGroup, tIdx) => `
-                                                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.25rem; align-items: center;">
-                                                        <input type="number" value="${throwGroup.count}" onchange="updateThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx}, 'count', this.value)" 
-                                                            style="width: 50px; padding: 0.25rem; font-size: 0.75rem;" placeholder="#">
-                                                        <span style="font-size: 0.75rem;">×</span>
-                                                        <input type="number" value="${throwGroup.intensity}" onchange="updateThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx}, 'intensity', this.value)" 
-                                                            style="width: 60px; padding: 0.25rem; font-size: 0.75rem;" placeholder="% max">
-                                                        <span style="font-size: 0.75rem;">%</span>
-                                                        <button onclick="removeThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx})" 
-                                                            style="padding: 0.125rem 0.5rem; background: #dc2626; color: white; border: none; border-radius: 0.25rem; font-size: 0.7rem; cursor: pointer;">×</button>
-                                                    </div>
-                                                `).join('')}
-                                            </div>
-                                            <textarea onchange="updateDayNotes(${weekIdx}, ${dayIdx}, this.value)" 
-                                                placeholder="Notes (e.g., Focus on mechanics, recovery throws...)"
-                                                style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; font-size: 0.75rem; border-radius: 0.25rem; border: 1px solid #d1d5db;">${dayData.notes || ''}</textarea>
-                                        </div>
-                                    ` : '<p style="font-size: 0.75rem; color: #6b7280;">Rest Day</p>'}
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        window.addWeek = function() {
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            const newWeek = {
-                days: Array(7).fill(null).map(() => ({ type: 'rest', throws: [], notes: '' }))
-            };
-            
-            program.weeks.push(newWeek);
-            savePrograms();
-            loadProgramBuilder(program);
-        }
-        
-        window.deleteWeek = function(weekIdx) {
-            if (!confirm('Delete this week?')) return;
-            
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            program.weeks.splice(weekIdx, 1);
-            savePrograms();
-            loadProgramBuilder(program);
-        }
-        
-        window.duplicateWeek = function(weekIdx) {
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            const weekCopy = JSON.parse(JSON.stringify(program.weeks[weekIdx]));
-            program.weeks.splice(weekIdx + 1, 0, weekCopy);
-            savePrograms();
-            loadProgramBuilder(program);
-        }
-        
-        window.changeDayType = function(weekIdx, dayIdx, type) {
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            program.weeks[weekIdx].days[dayIdx].type = type;
-            if (type === 'rest') {
-                program.weeks[weekIdx].days[dayIdx].throws = [];
-                program.weeks[weekIdx].days[dayIdx].notes = '';
-            }
-            savePrograms();
-            loadProgramBuilder(program);
-        }
-        
-        window.addThrowGroup = function(weekIdx, dayIdx) {
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            if (!program.weeks[weekIdx].days[dayIdx].throws) {
-                program.weeks[weekIdx].days[dayIdx].throws = [];
+            editProgram = function(id) {
+                const program = programs.find(p => p.id === id);
+                if (!program) return;
+                
+                document.getElementById('programs-list').classList.add('hidden');
+                document.getElementById('program-builder').classList.remove('hidden');
+                document.getElementById('builder-program-name').textContent = program.name;
+                document.getElementById('current-program-id').value = program.id;
+                
+                loadProgramBuilder(program);
             }
             
-            program.weeks[weekIdx].days[dayIdx].throws.push({ count: 10, intensity: 70 });
-            savePrograms();
-            loadProgramBuilder(program);
-        }
-        
-        window.removeThrowGroup = function(weekIdx, dayIdx, throwIdx) {
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
+            backToPrograms = function() {
+                document.getElementById('programs-list').classList.remove('hidden');
+                document.getElementById('program-builder').classList.add('hidden');
+                loadPrograms();
+            }
             
-            program.weeks[weekIdx].days[dayIdx].throws.splice(throwIdx, 1);
-            savePrograms();
-            loadProgramBuilder(program);
-        }
-        
-        window.updateThrowGroup = function(weekIdx, dayIdx, throwIdx, field, value) {
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            program.weeks[weekIdx].days[dayIdx].throws[throwIdx][field] = parseFloat(value);
-            savePrograms();
-        }
-        
-        window.updateDayNotes = function(weekIdx, dayIdx, notes) {
-            const programId = document.getElementById('current-program-id').value;
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            program.weeks[weekIdx].days[dayIdx].notes = notes;
-            savePrograms();
-        }
-        
-        window.viewProgramDashboard = function(programId) {
-            const program = programs.find(p => p.id === programId);
-            if (!program) return;
-            
-            // Calculate program stats
-            let totalThrows = 0;
-            let totalWorkload = 0;
-            let highIntensityThrows = 0;
-            let workDays = 0;
-            
-            program.weeks.forEach(week => {
-                week.days.forEach(day => {
-                    if (day.type !== 'rest' && day.throws) {
-                        workDays++;
-                        day.throws.forEach(throwGroup => {
-                            totalThrows += throwGroup.count;
-                            if (throwGroup.intensity >= 80) {
-                                highIntensityThrows += throwGroup.count;
-                            }
-                            // Rough workload estimate
-                            totalWorkload += throwGroup.count * (throwGroup.intensity / 100) * 0.15;
-                        });
-                    }
-                });
-            });
-            
-            const avgThrowsPerWeek = program.weeks.length > 0 ? (totalThrows / program.weeks.length).toFixed(0) : 0;
-            const avgWorkloadPerWeek = program.weeks.length > 0 ? (totalWorkload / program.weeks.length).toFixed(1) : 0;
-            
-            const dashboardHTML = `
-                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" onclick="this.remove()">
-                    <div onclick="event.stopPropagation()" style="background: white; border-radius: 1rem; padding: 2rem; max-width: 800px; max-height: 90vh; overflow-y: auto; width: 90%;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h2 style="color: #522d80;">${program.name} - Dashboard</h2>
-                            <button onclick="this.closest('div[style*=fixed]').remove()" style="padding: 0.5rem 1rem; background: #d1d5db; color: #374151; border: none; border-radius: 0.5rem; cursor: pointer;">Close</button>
-                        </div>
-                        
-                        <div class="grid-3" style="margin-bottom: 1.5rem;">
-                            <div class="metric-card purple">
-                                <div class="metric-title">Total Weeks</div>
-                                <div class="metric-value" style="color: #522d80;">${program.weeks.length}</div>
-                            </div>
-                            <div class="metric-card green">
-                                <div class="metric-title">Avg Throws/Week</div>
-                                <div class="metric-value" style="color: #16a34a;">${avgThrowsPerWeek}</div>
-                            </div>
-                            <div class="metric-card orange">
-                                <div class="metric-title">Avg Workload/Week</div>
-                                <div class="metric-value" style="color: #f59e0b;">${avgWorkloadPerWeek} AU</div>
+            loadProgramBuilder = function(program) {
+                const container = document.getElementById('week-builder-container');
+                
+                if (program.weeks.length === 0) {
+                    container.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 2rem;">No weeks added yet. Click "Add Week" to start building your program.</p>';
+                    return;
+                }
+                
+                container.innerHTML = program.weeks.map((week, weekIdx) => `
+                    <div class="week-card" id="week-${weekIdx}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 style="font-size: 1.1rem; color: #522d80;">Week ${weekIdx + 1}</h4>
+                            <div>
+                                <button onclick="duplicateWeek(${weekIdx})" class="btn-small" style="margin-right: 0.5rem;">📋 Duplicate</button>
+                                <button onclick="deleteWeek(${weekIdx})" class="btn-danger btn-small">Delete</button>
                             </div>
                         </div>
-                        
-                        <div style="background: #f9fafb; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
-                            <h3 style="margin-bottom: 1rem;">Program Summary</h3>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                                <div>
-                                    <strong>Total Throwing Days:</strong> ${workDays}
-                                </div>
-                                <div>
-                                    <strong>Total Throws:</strong> ${totalThrows}
-                                </div>
-                                <div>
-                                    <strong>High Intensity Throws (≥80%):</strong> ${highIntensityThrows}
-                                </div>
-                                <div>
-                                    <strong>Estimated Total Workload:</strong> ${totalWorkload.toFixed(1)} AU
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h3 style="margin-bottom: 1rem;">Weekly Breakdown</h3>
-                        <div style="max-height: 400px; overflow-y: auto;">
-                            ${program.weeks.map((week, idx) => {
-                                const weekThrows = week.days.reduce((sum, day) => {
-                                    if (day.throws) {
-                                        return sum + day.throws.reduce((s, t) => s + t.count, 0);
-                                    }
-                                    return sum;
-                                }, 0);
-                                
-                                const workingDays = week.days.filter(d => d.type !== 'rest').length;
-                                
+                        <div class="week-days">
+                            ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, dayIdx) => {
+                                const dayData = week.days[dayIdx] || { type: 'rest', throws: [], notes: '' };
                                 return `
-                                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem; border: 2px solid #e5e7eb;">
-                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
-                                            <strong>Week ${idx + 1}</strong>
-                                            <span style="color: #522d80; font-weight: 600;">${weekThrows} throws • ${workingDays} work days</span>
+                                    <div class="day-card ${dayData.type === 'rest' ? 'rest-day' : ''}">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                            <strong style="font-size: 0.875rem;">${day}</strong>
+                                            <select onchange="changeDayType(${weekIdx}, ${dayIdx}, this.value)" style="padding: 0.25rem; font-size: 0.75rem;">
+                                                <option value="rest" ${dayData.type === 'rest' ? 'selected' : ''}>Rest</option>
+                                                <option value="bullpen" ${dayData.type === 'bullpen' ? 'selected' : ''}>Bullpen</option>
+                                                <option value="long-toss" ${dayData.type === 'long-toss' ? 'selected' : ''}>Long Toss</option>
+                                                <option value="flat-ground" ${dayData.type === 'flat-ground' ? 'selected' : ''}>Flat Ground</option>
+                                                <option value="game" ${dayData.type === 'game' ? 'selected' : ''}>Game Day</option>
+                                                <option value="recovery" ${dayData.type === 'recovery' ? 'selected' : ''}>Recovery</option>
+                                            </select>
                                         </div>
-                                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem;">
-                                            ${week.days.map((day, dayIdx) => {
-                                                const dayName = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'][dayIdx];
-                                                const dayThrows = day.throws ? day.throws.reduce((s, t) => s + t.count, 0) : 0;
-                                                return `
-                                                    <div style="text-align: center; padding: 0.5rem; background: ${day.type === 'rest' ? '#f3f4f6' : '#dbeafe'}; border-radius: 0.25rem;">
-                                                        <div style="font-size: 0.7rem; font-weight: 600;">${dayName}</div>
-                                                        <div style="font-size: 0.65rem; margin-top: 0.25rem;">${day.type === 'rest' ? 'Rest' : dayThrows}</div>
-                                                    </div>
-                                                `;
-                                            }).join('')}
-                                        </div>
+                                        ${dayData.type !== 'rest' ? `
+                                            <div id="day-${weekIdx}-${dayIdx}-details">
+                                                <div style="font-size: 0.75rem; margin-bottom: 0.5rem;">
+                                                    <strong>Throws:</strong>
+                                                    <button onclick="addThrowGroup(${weekIdx}, ${dayIdx})" style="padding: 0.125rem 0.5rem; font-size: 0.7rem; margin-left: 0.5rem;">+ Add</button>
+                                                </div>
+                                                <div id="throws-${weekIdx}-${dayIdx}">
+                                                    ${(dayData.throws || []).map((throwGroup, tIdx) => `
+                                                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.25rem; align-items: center;">
+                                                            <input type="number" value="${throwGroup.count}" onchange="updateThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx}, 'count', this.value)" 
+                                                                style="width: 50px; padding: 0.25rem; font-size: 0.75rem;" placeholder="#">
+                                                            <span style="font-size: 0.75rem;">×</span>
+                                                            <input type="number" value="${throwGroup.intensity}" onchange="updateThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx}, 'intensity', this.value)" 
+                                                                style="width: 60px; padding: 0.25rem; font-size: 0.75rem;" placeholder="% max">
+                                                            <span style="font-size: 0.75rem;">%</span>
+                                                            <button onclick="removeThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx})" 
+                                                                style="padding: 0.125rem 0.5rem; background: #dc2626; color: white; border: none; border-radius: 0.25rem; font-size: 0.7rem; cursor: pointer;">×</button>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                                <textarea onchange="updateDayNotes(${weekIdx}, ${dayIdx}, this.value)" 
+                                                    placeholder="Notes (e.g., Focus on mechanics, recovery throws...)"
+                                                    style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; font-size: 0.75rem; border-radius: 0.25rem; border: 1px solid #d1d5db;">${dayData.notes || ''}</textarea>
+                                            </div>
+                                        ` : '<p style="font-size: 0.75rem; color: #6b7280;">Rest Day</p>'}
                                     </div>
                                 `;
                             }).join('')}
                         </div>
-                        
-                        <div style="margin-top: 1.5rem; padding: 1rem; background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 0.5rem;">
-                            <h4 style="color: #1e40af; margin-bottom: 0.5rem;">📊 Program Rationale</h4>
-                            <p style="font-size: 0.875rem; color: #1e40af;">
-                                This ${program.weeks.length}-week program gradually builds throwing volume and intensity. 
-                                Athletes should monitor their ACWR to ensure they stay in the optimal range (0.8-1.3). 
-                                High intensity days (≥80% max velocity) are strategically placed to allow adequate recovery.
-                            </p>
-                        </div>
                     </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', dashboardHTML);
-        }
-        
-        window.loadPrograms = function() {
-            const list = document.getElementById('programs-list-container');
-            if (programs.length === 0) {
-                list.innerHTML = '<p style="color: #6b7280;">No programs yet. Click "Create New Program" to get started!</p>';
-                return;
+                `).join('');
             }
             
-            list.innerHTML = programs.map(prog => {
-                const assignedPlayers = players.filter(p => p.programId === prog.id);
-                return `
-                    <div class="program-card">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                            <div>
-                                <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">${prog.name}</h4>
-                                <p style="color: #6b7280; font-size: 0.875rem;">${prog.weeks.length} weeks planned</p>
+            addWeek = function() {
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                const newWeek = {
+                    days: Array(7).fill(null).map(() => ({ type: 'rest', throws: [], notes: '' }))
+                };
+                
+                program.weeks.push(newWeek);
+                savePrograms();
+                loadProgramBuilder(program);
+            }
+            
+            deleteWeek = function(weekIdx) {
+                if (!confirm('Delete this week?')) return;
+                
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                program.weeks.splice(weekIdx, 1);
+                savePrograms();
+                loadProgramBuilder(program);
+            }
+            
+            duplicateWeek = function(weekIdx) {
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                const weekCopy = JSON.parse(JSON.stringify(program.weeks[weekIdx]));
+                program.weeks.splice(weekIdx + 1, 0, weekCopy);
+                savePrograms();
+                loadProgramBuilder(program);
+            }
+            
+            changeDayType = function(weekIdx, dayIdx, type) {
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                program.weeks[weekIdx].days[dayIdx].type = type;
+                if (type === 'rest') {
+                    program.weeks[weekIdx].days[dayIdx].throws = [];
+                    program.weeks[weekIdx].days[dayIdx].notes = '';
+                }
+                savePrograms();
+                loadProgramBuilder(program);
+            }
+            
+            addThrowGroup = function(weekIdx, dayIdx) {
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                if (!program.weeks[weekIdx].days[dayIdx].throws) {
+                    program.weeks[weekIdx].days[dayIdx].throws = [];
+                }
+                
+                program.weeks[weekIdx].days[dayIdx].throws.push({ count: 10, intensity: 70 });
+                savePrograms();
+                loadProgramBuilder(program);
+            }
+            
+            removeThrowGroup = function(weekIdx, dayIdx, throwIdx) {
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                program.weeks[weekIdx].days[dayIdx].throws.splice(throwIdx, 1);
+                savePrograms();
+                loadProgramBuilder(program);
+            }
+            
+            updateThrowGroup = function(weekIdx, dayIdx, throwIdx, field, value) {
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                program.weeks[weekIdx].days[dayIdx].throws[throwIdx][field] = parseFloat(value);
+                savePrograms();
+            }
+            
+            updateDayNotes = function(weekIdx, dayIdx, notes) {
+                const programId = document.getElementById('current-program-id').value;
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                program.weeks[weekIdx].days[dayIdx].notes = notes;
+                savePrograms();
+            }
+            
+            viewProgramDashboard = function(programId) {
+                const program = programs.find(p => p.id === programId);
+                if (!program) return;
+                
+                // Calculate program stats
+                let totalThrows = 0;
+                let totalWorkload = 0;
+                let highIntensityThrows = 0;
+                let workDays = 0;
+                
+                program.weeks.forEach(week => {
+                    week.days.forEach(day => {
+                        if (day.type !== 'rest' && day.throws) {
+                            workDays++;
+                            day.throws.forEach(throwGroup => {
+                                totalThrows += throwGroup.count;
+                                if (throwGroup.intensity >= 80) {
+                                    highIntensityThrows += throwGroup.count;
+                                }
+                                // Rough workload estimate
+                                totalWorkload += throwGroup.count * (throwGroup.intensity / 100) * 0.15;
+                            });
+                        }
+                    });
+                });
+                
+                const avgThrowsPerWeek = program.weeks.length > 0 ? (totalThrows / program.weeks.length).toFixed(0) : 0;
+                const avgWorkloadPerWeek = program.weeks.length > 0 ? (totalWorkload / program.weeks.length).toFixed(1) : 0;
+                
+                const dashboardHTML = `
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" onclick="this.remove()">
+                        <div onclick="event.stopPropagation()" style="background: white; border-radius: 1rem; padding: 2rem; max-width: 800px; max-height: 90vh; overflow-y: auto; width: 90%;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <h2 style="color: #522d80;">${program.name} - Dashboard</h2>
+                                <button onclick="this.closest('div[style*=fixed]').remove()" style="padding: 0.5rem 1rem; background: #d1d5db; color: #374151; border: none; border-radius: 0.5rem; cursor: pointer;">Close</button>
                             </div>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button onclick="viewProgramDashboard('${prog.id}')" class="btn-small" style="background: #2563eb;">📊 View</button>
-                                <button onclick="editProgram('${prog.id}')" class="btn-small">✏️ Edit</button>
-                                <button onclick="deleteProgram('${prog.id}')" class="btn-danger btn-small">Delete</button>
-                            </div>
-                        </div>
-                        
-                        ${assignedPlayers.length > 0 ? `
-                            <div style="padding-top: 1rem; border-top: 2px solid #e5e7eb;">
-                                <strong style="font-size: 0.875rem;">Assigned Players (${assignedPlayers.length}):</strong>
-                                <div style="margin-top: 0.5rem;">
-                                    ${assignedPlayers.map(p => `<span style="display: inline-block; padding: 0.25rem 0.75rem; background: #eff6ff; border-radius: 9999px; font-size: 0.75rem; margin: 0.25rem;">${p.name}</span>`).join('')}
+                            
+                            <div class="grid-3" style="margin-bottom: 1.5rem;">
+                                <div class="metric-card purple">
+                                    <div class="metric-title">Total Weeks</div>
+                                    <div class="metric-value" style="color: #522d80;">${program.weeks.length}</div>
+                                </div>
+                                <div class="metric-card green">
+                                    <div class="metric-title">Avg Throws/Week</div>
+                                    <div class="metric-value" style="color: #16a34a;">${avgThrowsPerWeek}</div>
+                                </div>
+                                <div class="metric-card orange">
+                                    <div class="metric-title">Avg Workload/Week</div>
+                                    <div class="metric-value" style="color: #f59e0b;">${avgWorkloadPerWeek} AU</div>
                                 </div>
                             </div>
-                        ` : ''}
+                            
+                            <div style="background: #f9fafb; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem;">
+                                <h3 style="margin-bottom: 1rem;">Program Summary</h3>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                    <div>
+                                        <strong>Total Throwing Days:</strong> ${workDays}
+                                    </div>
+                                    <div>
+                                        <strong>Total Throws:</strong> ${totalThrows}
+                                    </div>
+                                    <div>
+                                        <strong>High Intensity Throws (≥80%):</strong> ${highIntensityThrows}
+                                    </div>
+                                    <div>
+                                        <strong>Estimated Total Workload:</strong> ${totalWorkload.toFixed(1)} AU
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h3 style="margin-bottom: 1rem;">Weekly Breakdown</h3>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                ${program.weeks.map((week, idx) => {
+                                    const weekThrows = week.days.reduce((sum, day) => {
+                                        if (day.throws) {
+                                            return sum + day.throws.reduce((s, t) => s + t.count, 0);
+                                        }
+                                        return sum;
+                                    }, 0);
+                                    
+                                    const workingDays = week.days.filter(d => d.type !== 'rest').length;
+                                    
+                                    return `
+                                        <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem; border: 2px solid #e5e7eb;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                                                <strong>Week ${idx + 1}</strong>
+                                                <span style="color: #522d80; font-weight: 600;">${weekThrows} throws • ${workingDays} work days</span>
+                                            </div>
+                                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem;">
+                                                ${week.days.map((day, dayIdx) => {
+                                                    const dayName = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'][dayIdx];
+                                                    const dayThrows = day.throws ? day.throws.reduce((s, t) => s + t.count, 0) : 0;
+                                                    return `
+                                                        <div style="text-align: center; padding: 0.5rem; background: ${day.type === 'rest' ? '#f3f4f6' : '#dbeafe'}; border-radius: 0.25rem;">
+                                                            <div style="font-size: 0.7rem; font-weight: 600;">${dayName}</div>
+                                                            <div style="font-size: 0.65rem; margin-top: 0.25rem;">${day.type === 'rest' ? 'Rest' : dayThrows}</div>
+                                                        </div>
+                                                    `;
+                                                }).join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            
+                            <div style="margin-top: 1.5rem; padding: 1rem; background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 0.5rem;">
+                                <h4 style="color: #1e40af; margin-bottom: 0.5rem;">📊 Program Rationale</h4>
+                                <p style="font-size: 0.875rem; color: #1e40af;">
+                                    This ${program.weeks.length}-week program gradually builds throwing volume and intensity. 
+                                    Athletes should monitor their ACWR to ensure they stay in the optimal range (0.8-1.3). 
+                                    High intensity days (≥80% max velocity) are strategically placed to allow adequate recovery.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 `;
-            }).join('');
-        }
-        
-        window.deleteProgram = async function(id) {
-            if (!confirm('Delete this program? Players assigned to it will not be affected.')) return;
+                
+                document.body.insertAdjacentHTML('beforeend', dashboardHTML);
+            }
             
-            if (window.isFirebaseConfigured) {
-                try {
-                    const programDoc = window.firestore.doc(window.db, 'programs', id);
-                    await window.firestore.deleteDoc(programDoc);
-                } catch (error) {
-                    console.error('Error deleting program:', error);
+            loadPrograms = function() {
+                const list = document.getElementById('programs-list-container');
+                if (programs.length === 0) {
+                    list.innerHTML = '<p style="color: #6b7280;">No programs yet. Click "Create New Program" to get started!</p>';
+                    return;
+                }
+                
+                list.innerHTML = programs.map(prog => {
+                    const assignedPlayers = players.filter(p => p.programId === prog.id);
+                    return `
+                        <div class="program-card">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <div>
+                                    <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">${prog.name}</h4>
+                                    <p style="color: #6b7280; font-size: 0.875rem;">${prog.weeks.length} weeks planned</p>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button onclick="viewProgramDashboard('${prog.id}')" class="btn-small" style="background: #2563eb;">📊 View</button>
+                                    <button onclick="editProgram('${prog.id}')" class="btn-small">✏️ Edit</button>
+                                    <button onclick="deleteProgram('${prog.id}')" class="btn-danger btn-small">Delete</button>
+                                </div>
+                            </div>
+                            
+                            ${assignedPlayers.length > 0 ? `
+                                <div style="padding-top: 1rem; border-top: 2px solid #e5e7eb;">
+                                    <strong style="font-size: 0.875rem;">Assigned Players (${assignedPlayers.length}):</strong>
+                                    <div style="margin-top: 0.5rem;">
+                                        ${assignedPlayers.map(p => `<span style="display: inline-block; padding: 0.25rem 0.75rem; background: #eff6ff; border-radius: 9999px; font-size: 0.75rem; margin: 0.25rem;">${p.name}</span>`).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            deleteProgram = async function(id) {
+                if (!confirm('Delete this program? Players assigned to it will not be affected.')) return;
+                
+                if (window.isFirebaseConfigured) {
+                    try {
+                        const programDoc = window.firestore.doc(window.db, 'programs', id);
+                        await window.firestore.deleteDoc(programDoc);
+                    } catch (error) {
+                        console.error('Error deleting program:', error);
+                    }
+                }
+                
+                programs = programs.filter(p => p.id !== id);
+                savePrograms();
+                loadPrograms();
+                updateProgramDropdown();
+            }
+            
+            updateProgramDropdown = function() {
+                const dropdown = document.getElementById('player-program');
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="">No Program</option>' + 
+                        programs.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
                 }
             }
             
-            programs = programs.filter(p => p.id !== id);
-            savePrograms();
-            loadPrograms();
+            function savePrograms() {
+                localStorage.setItem('acwr_programs', JSON.stringify(programs));
+                if (window.isFirebaseConfigured) {
+                    programs.forEach(async prog => {
+                        try {
+                            const programDoc = window.firestore.doc(window.db, 'programs', prog.id);
+                            await window.firestore.setDoc(programDoc, prog);
+                        } catch (error) {
+                            console.error('Error saving program:', error);
+                        }
+                    });
+                }
+            }
+            
+            // Load programs on startup
             updateProgramDropdown();
-        }
-        
-        window.updateProgramDropdown = function() {
-            const dropdown = document.getElementById('player-program');
-            if (dropdown) {
-                dropdown.innerHTML = '<option value="">No Program</option>' + 
-                    programs.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            }
-        }
-        
-        function savePrograms() {
-            localStorage.setItem('acwr_programs', JSON.stringify(programs));
-            if (window.isFirebaseConfigured) {
-                programs.forEach(async prog => {
-                    try {
-                        const programDoc = window.firestore.doc(window.db, 'programs', prog.id);
-                        await window.firestore.setDoc(programDoc, prog);
-                    } catch (error) {
-                        console.error('Error saving program:', error);
-                    }
-                });
-            }
-        }
-        
-        // Load programs on startup
-        window.updateProgramDropdown();
-        window.loadPrograms();
+            loadPrograms();
         // Initial load
         loadPlayersFromCloud();
         updateCurrentPlayerDisplay();
@@ -2145,6 +2145,7 @@
 </body>
 
 </html>
+
 
 
 

@@ -478,7 +478,7 @@
                     <h2>Training Programs</h2>
                     <button onclick="createNewProgram()" class="btn-success">+ Create New Program</button>
                 </div>
-                <div id="programs-list-container"></div>
+                <div id="programs-list"></div>
             </div>
             
             <div id="program-builder" class="hidden">
@@ -1070,9 +1070,10 @@
         
         function showTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             
             document.getElementById('players-tab').classList.toggle('hidden', tab !== 'players');
+            document.getElementById('programs-tab').classList.toggle('hidden', tab !== 'programs');
             document.getElementById('input-tab').classList.toggle('hidden', tab !== 'input');
             document.getElementById('dashboard-tab').classList.toggle('hidden', tab !== 'dashboard');
             
@@ -1080,6 +1081,11 @@
                 updateCurrentPlayerDisplay();
                 loadSessions();
                 renderEffortZones();
+            }
+            if (tab === 'programs') {
+                loadPrograms();
+                document.getElementById('programs-list').classList.remove('hidden');
+                document.getElementById('program-builder').classList.add('hidden');
             }
             if (tab === 'dashboard') {
                 updateCurrentPlayerDisplay();
@@ -1489,7 +1495,7 @@
             }
             
             loadPrograms = function() {
-                const list = document.getElementById('programs-list-container');
+                const list = document.getElementById('programs-list');
                 if (programs.length === 0) {
                     list.innerHTML = '<p style="color: #6b7280;">No programs yet. Click "Create New Program" to get started!</p>';
                     return;
@@ -2145,6 +2151,7 @@
 </body>
 
 </html>
+
 
 
 

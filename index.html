@@ -720,6 +720,7 @@
             }
             
             // Also save to localStorage as backup
+            let activeSessionId = null;
             players.push(player);
             localStorage.setItem('acwr_players', JSON.stringify(players));
             
@@ -1001,6 +1002,7 @@
             });
             
             const session = {
+                id: activeSessionId ?? Date.now().toString(),
                 date: document.getElementById('session-date').value,
                 throws: [...currentThrows],
                 maxVelo: player.maxVelo,
@@ -1011,12 +1013,15 @@
                 rhr: document.getElementById('rhr').value ? parseInt(document.getElementById('rhr').value) : null
             };
             
-            const existingIdx = player.sessions.findIndex(s => s.date === session.date);
-            if (existingIdx !== -1) {
-                player.sessions[existingIdx] = session;
+            if (activeSessionId) {
+                const idx = player.sessions.findIndex(s => s.id === activeSessionId);
+                if (idx !== -1) {
+                    player.sessions[idx] = session;
+                }
             } else {
                 player.sessions.push(session);
             }
+
             
             if (window.isFirebaseConfigured) {
                 try {
@@ -1055,19 +1060,47 @@
                 .slice(0, 10)
                 .map(s => `
                     <div class="session-item">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
                             <strong>${s.date}</strong>
-                            <strong style="color: #522d80;">${s.workload.toFixed(2)} AU</strong>
+                            <strong style="color:#522d80;">${s.workload.toFixed(2)} AU</strong>
                         </div>
-                        ${s.breakdown ? '<div class="zone-badges">' + 
-                            Object.entries(s.breakdown)
-                                .sort((a, b) => b[0].localeCompare(a[0]))
-                                .map(([z, c]) => `<span class="zone-badge ${z}">${z.toUpperCase()}: ${c}</span>`)
-                                .join('') + '</div>' : ''}
+                
+                        ${s.breakdown ? `
+                            <div class="zone-badges">
+                                ${Object.entries(s.breakdown)
+                                    .sort((a, b) => b[0].localeCompare(a[0]))
+                                    .map(([z, c]) => `<span class="zone-badge ${z}">${z.toUpperCase()}: ${c}</span>`)
+                                    .join('')}
+                            </div>` : ''}
+                
+                        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                            <button class="btn-small" onclick="editSession('${s.id}')">Edit</button>
+                            <button class="btn-small btn-danger" onclick="deleteSession('${s.id}')">Delete</button>
+                        </div>
                     </div>
                 `).join('');
         }
+
+        function editSession(sessionId) {
+            const player = getCurrentPlayer();
+            const session = player.sessions.find(s => s.id === sessionId);
+            if (!session) return;
         
+            activeSessionId = sessionId;
+        
+            document.getElementById('session-date').value = session.date;
+            document.getElementById('sleep-score').value = session.sleepScore ?? '';
+            document.getElementById('hrv').value = session.hrv ?? '';
+            document.getElementById('rhr').value = session.rhr ?? '';
+        
+            currentThrows = [...session.throws];
+        
+            renderCurrentSession();
+            renderEffortZones();
+        
+            document.getElementById('save-btn').disabled = false;
+        }
+
         function showTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             if (event && event.target) event.target.classList.add('active');
@@ -2157,4 +2190,5 @@
 </body>
 
 </html>
+
 

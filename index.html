@@ -1060,6 +1060,7 @@
     </script>
     
     <script>
+        let activeSessionId = null;
         const BRN_ZONES = [
             {minPercent: 0, maxPercent: 53, value: 0.02},
             {minPercent: 53, maxPercent: 59, value: 0.03},
@@ -1413,6 +1414,27 @@
             `;
         }
         
+        function editSession(sessionId) {
+            const player = getCurrentPlayer();
+            const session = player.sessions.find(s => s.id === sessionId);
+            if (!session) return;
+        
+            activeSessionId = sessionId;
+        
+            document.getElementById('session-date').value = session.date;
+            document.getElementById('sleep-score').value = session.sleepScore ?? '';
+            document.getElementById('hrv').value = session.hrv ?? '';
+            document.getElementById('rhr').value = session.rhr ?? '';
+        
+            currentThrows = [...session.throws];
+        
+            renderCurrentSession();
+            renderEffortZones();
+        
+            document.getElementById('save-btn').textContent = '💾 Update Session';
+            document.getElementById('save-btn').disabled = false;
+        }
+
         async function saveSession() {
             const player = getCurrentPlayer();
             if (!player) return;
@@ -1426,6 +1448,7 @@
             });
             
             const session = {
+                id: activeSessionId ?? Date.now().toString(),
                 date: document.getElementById('session-date').value,
                 throws: [...currentThrows],
                 maxVelo: player.maxVelo,
@@ -1436,9 +1459,11 @@
                 rhr: document.getElementById('rhr').value ? parseInt(document.getElementById('rhr').value) : null
             };
             
-            const existingIdx = player.sessions.findIndex(s => s.date === session.date);
-            if (existingIdx !== -1) {
-                player.sessions[existingIdx] = session;
+            if (activeSessionId) {
+                const idx = player.sessions.findIndex(s => s.id === activeSessionId);
+                if (idx !== -1) {
+                    player.sessions[idx] = session;
+                }
             } else {
                 player.sessions.push(session);
             }
@@ -1464,6 +1489,26 @@
             renderEffortZones();
             loadSessions();
             alert('✅ Session saved!');
+            activeSessionId = null;
+            document.getElementById('save-btn').textContent = '💾 Save Session';
+        }
+        function migrateSessionIds() {
+            let changed = false;
+        
+            players.forEach(player => {
+                if (!player.sessions) return;
+                player.sessions.forEach(s => {
+                    if (!s.id) {
+                        s.id = Date.now().toString() + Math.random().toString(36).slice(2);
+                        changed = true;
+                    }
+                });
+            });
+        
+            if (changed) {
+                localStorage.setItem('acwr_players', JSON.stringify(players));
+                console.log('✅ Migrated session IDs');
+            }
         }
         
         function loadSessions() {
@@ -1479,7 +1524,7 @@
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .slice(0, 10)
                 .map(s => `
-                    <div class="session-item">
+                    <div class="session-item" onclick="editSession('${s.id}')">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                             <strong>${s.date}</strong>
                             <strong style="color: #522d80;">${s.workload.toFixed(2)} AU</strong>
@@ -1599,7 +1644,7 @@
             `;
         }
         // Initial load
-        loadPlayersFromCloud();
+        loadPlayersFromCloud().then(migrateSessionIds);
         updateCurrentPlayerDisplay();
         if (currentPlayerId) {
             loadSessions();
@@ -1609,5 +1654,6 @@
 </body>
 
 </html>
+
 
 

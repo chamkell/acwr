@@ -478,7 +478,7 @@
                     <h2>Training Programs</h2>
                     <button onclick="createNewProgram()" class="btn-success">+ Create New Program</button>
                 </div>
-                <div id="programs-list"></div>
+                <div id="programs-list-container"></div>
             </div>
             
             <div id="program-builder" class="hidden">
@@ -1084,7 +1084,7 @@
             }
             if (tab === 'programs') {
                 loadPrograms();
-                document.getElementById('programs-list').classList.remove('hidden');
+                document.getElementById('programs-list-container').classList.remove('hidden');
                 document.getElementById('program-builder').classList.add('hidden');
             }
             if (tab === 'dashboard') {
@@ -1201,7 +1201,7 @@
                 const program = programs.find(p => p.id === id);
                 if (!program) return;
                 
-                document.getElementById('programs-list').parentElement.classList.add('hidden');
+                document.getElementById('programs-list-container').parentElement.classList.add('hidden');
                 document.getElementById('program-builder').classList.remove('hidden');
                 document.getElementById('builder-program-name').textContent = program.name;
                 document.getElementById('current-program-id').value = program.id;
@@ -1210,7 +1210,7 @@
             }
                         
             backToPrograms = function() {
-                document.getElementById('programs-list').parentElement.classList.remove('hidden');
+                document.getElementById('programs-list-container').parentElement.classList.remove('hidden');
                 document.getElementById('program-builder').classList.add('hidden');
                 loadPrograms();
             }
@@ -1494,7 +1494,7 @@
             }
             
             loadPrograms = function() {
-                const list = document.getElementById('programs-list');
+                const list = document.getElementById('programs-list-container');
                 if (programs.length === 0) {
                     list.innerHTML = '<p style="color: #6b7280;">No programs yet. Click "Create New Program" to get started!</p>';
                     return;
@@ -2055,7 +2055,7 @@
             }
             if (tab === 'programs') {
                 loadPrograms();
-                document.getElementById('programs-list').classList.remove('hidden');
+                document.getElementById('programs-list-container').classList.remove('hidden');
                 document.getElementById('program-builder').classList.add('hidden');
             }
             if (tab === 'dashboard') {
@@ -2157,3 +2157,4 @@
 </body>
 
 </html>
+

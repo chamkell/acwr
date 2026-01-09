@@ -1360,15 +1360,33 @@
             
             list.innerHTML = currentThrows
                 .sort((a, b) => b.velocity - a.velocity)
-                .map(t => {
+                .map((t, index) => {
                     const pct = ((t.velocity / player.maxVelo) * 100).toFixed(1);
                     const zone = getZoneName(player.maxVelo, t.velocity).toUpperCase();
-                    return `<div class="throw-item">
-                        <span><strong>${t.velocity} mph</strong> (${pct}% - ${zone})</span>
-                        <span>× ${t.count}</span>
-                    </div>`;
-                }).join('');
             
+                    return `
+                        <div class="throw-item" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>
+                                <strong>${t.velocity} mph</strong>
+                                (${pct}% – ${zone})
+                            </span>
+            
+                            <div style="display:flex; gap:0.25rem; align-items:center;">
+                                <button onclick="decrementThrow(${index})"
+                                    style="padding:0.25rem 0.5rem;">−</button>
+            
+                                <span>× ${t.count}</span>
+            
+                                <button onclick="incrementThrow(${index})"
+                                    style="padding:0.25rem 0.5rem;">+</button>
+            
+                                <button onclick="removeVelocity(${index})"
+                                    style="padding:0.25rem 0.5rem; background:#fee2e2;">✕</button>
+                            </div>
+                        </div>
+                    `;
+                })
+                .join('');
             document.getElementById('throw-count').textContent = total;
             document.getElementById('total-workload').textContent = workload.toFixed(3);
         }
@@ -1434,7 +1452,35 @@
             document.getElementById('save-btn').textContent = '💾 Update Session';
             document.getElementById('save-btn').disabled = false;
         }
-
+        function decrementThrow(index) {
+            if (!currentThrows[index]) return;
+        
+            currentThrows[index].count--;
+        
+            if (currentThrows[index].count <= 0) {
+                currentThrows.splice(index, 1);
+            }
+        
+            renderCurrentSession();
+            renderEffortZones();
+        }
+        
+        function incrementThrow(index) {
+            if (!currentThrows[index]) return;
+        
+            currentThrows[index].count++;
+            renderCurrentSession();
+            renderEffortZones();
+        }
+        
+        function removeVelocity(index) {
+            if (!confirm('Remove all throws at this velocity?')) return;
+        
+            currentThrows.splice(index, 1);
+            renderCurrentSession();
+            renderEffortZones();
+        }
+        
         async function saveSession() {
             const player = getCurrentPlayer();
             if (!player) return;
@@ -1654,6 +1700,7 @@
 </body>
 
 </html>
+
 
 
 

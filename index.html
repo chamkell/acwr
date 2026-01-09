@@ -1201,7 +1201,7 @@
                 const program = programs.find(p => p.id === id);
                 if (!program) return;
                 
-                document.getElementById('programs-list-container').parentElement.classList.add('hidden');
+                document.getElementById('programs-list').parentElement.classList.add('hidden');
                 document.getElementById('program-builder').classList.remove('hidden');
                 document.getElementById('builder-program-name').textContent = program.name;
                 document.getElementById('current-program-id').value = program.id;
@@ -1210,7 +1210,7 @@
             }
                         
             backToPrograms = function() {
-                document.getElementById('programs-list-container').parentElement.classList.remove('hidden');
+                document.getElementById('programs-list').parentElement.classList.remove('hidden');
                 document.getElementById('program-builder').classList.add('hidden');
                 loadPrograms();
             }
@@ -1222,7 +1222,7 @@
                     return;
                 }
                 
-                container.innerHTML = program.weeks.map((week, weekIdx) => 
+                container.innerHTML = program.weeks.map((week, weekIdx) => `
                     <div class="week-card" id="week-${weekIdx}">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                             <h4 style="font-size: 1.1rem; color: #522d80;">Week ${weekIdx + 1}</h4>
@@ -1234,7 +1234,7 @@
                         <div class="week-days">
                             ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, dayIdx) => {
                                 const dayData = week.days[dayIdx] || { type: 'rest', throws: [], notes: '' };
-                                return 
+                                return `
                                     <div class="day-card ${dayData.type === 'rest' ? 'rest-day' : ''}">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                                             <strong style="font-size: 0.875rem;">${day}</strong>
@@ -1247,14 +1247,14 @@
                                                 <option value="recovery" ${dayData.type === 'recovery' ? 'selected' : ''}>Recovery</option>
                                             </select>
                                         </div>
-                                        ${dayData.type !== 'rest' ? 
+                                        ${dayData.type !== 'rest' ? `
                                             <div id="day-${weekIdx}-${dayIdx}-details">
                                                 <div style="font-size: 0.75rem; margin-bottom: 0.5rem;">
                                                     <strong>Throws:</strong>
                                                     <button onclick="addThrowGroup(${weekIdx}, ${dayIdx})" style="padding: 0.125rem 0.5rem; font-size: 0.7rem; margin-left: 0.5rem;">+ Add</button>
                                                 </div>
                                                 <div id="throws-${weekIdx}-${dayIdx}">
-                                                    ${(dayData.throws || []).map((throwGroup, tIdx) => 
+                                                    ${(dayData.throws || []).map((throwGroup, tIdx) => `
                                                         <div style="display: flex; gap: 0.5rem; margin-bottom: 0.25rem; align-items: center;">
                                                             <input type="number" value="${throwGroup.count}" onchange="updateThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx}, 'count', this.value)" 
                                                                 style="width: 50px; padding: 0.25rem; font-size: 0.75rem;" placeholder="#">
@@ -1265,19 +1265,19 @@
                                                             <button onclick="removeThrowGroup(${weekIdx}, ${dayIdx}, ${tIdx})" 
                                                                 style="padding: 0.125rem 0.5rem; background: #dc2626; color: white; border: none; border-radius: 0.25rem; font-size: 0.7rem; cursor: pointer;">×</button>
                                                         </div>
-                                                    ).join('')}
+                                                    `).join('')}
                                                 </div>
                                                 <textarea onchange="updateDayNotes(${weekIdx}, ${dayIdx}, this.value)" 
                                                     placeholder="Notes (e.g., Focus on mechanics, recovery throws...)"
                                                     style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; font-size: 0.75rem; border-radius: 0.25rem; border: 1px solid #d1d5db;">${dayData.notes || ''}</textarea>
                                             </div>
-                                         : '<p style="font-size: 0.75rem; color: #6b7280;">Rest Day</p>'}
+                                        ` : '<p style="font-size: 0.75rem; color: #6b7280;">Rest Day</p>'}
                                     </div>
-                                ;
+                                `;
                             }).join('')}
                         </div>
                     </div>
-                ).join('');
+                `).join('');
             }
             
             addWeek = function() {
@@ -1402,7 +1402,7 @@
                 const avgThrowsPerWeek = program.weeks.length > 0 ? (totalThrows / program.weeks.length).toFixed(0) : 0;
                 const avgWorkloadPerWeek = program.weeks.length > 0 ? (totalWorkload / program.weeks.length).toFixed(1) : 0;
                 
-                const dashboardHTML = 
+                const dashboardHTML = `
                     <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;" onclick="this.remove()">
                         <div onclick="event.stopPropagation()" style="background: white; border-radius: 1rem; padding: 2rem; max-width: 800px; max-height: 90vh; overflow-y: auto; width: 90%;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -1455,7 +1455,7 @@
                                     
                                     const workingDays = week.days.filter(d => d.type !== 'rest').length;
                                     
-                                    return 
+                                    return `
                                         <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem; border: 2px solid #e5e7eb;">
                                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
                                                 <strong>Week ${idx + 1}</strong>
@@ -1465,16 +1465,16 @@
                                                 ${week.days.map((day, dayIdx) => {
                                                     const dayName = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'][dayIdx];
                                                     const dayThrows = day.throws ? day.throws.reduce((s, t) => s + t.count, 0) : 0;
-                                                    return 
+                                                    return `
                                                         <div style="text-align: center; padding: 0.5rem; background: ${day.type === 'rest' ? '#f3f4f6' : '#dbeafe'}; border-radius: 0.25rem;">
                                                             <div style="font-size: 0.7rem; font-weight: 600;">${dayName}</div>
                                                             <div style="font-size: 0.65rem; margin-top: 0.25rem;">${day.type === 'rest' ? 'Rest' : dayThrows}</div>
                                                         </div>
-                                                    ;
+                                                    `;
                                                 }).join('')}
                                             </div>
                                         </div>
-                                    ;
+                                    `;
                                 }).join('')}
                             </div>
                             
@@ -1488,7 +1488,7 @@
                             </div>
                         </div>
                     </div>
-                ;
+                `;
                 
                 document.body.insertAdjacentHTML('beforeend', dashboardHTML);
             }
@@ -1502,7 +1502,7 @@
                 
                 list.innerHTML = programs.map(prog => {
                     const assignedPlayers = players.filter(p => p.programId === prog.id);
-                    return 
+                    return `
                         <div class="program-card">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                                 <div>
@@ -1516,16 +1516,16 @@
                                 </div>
                             </div>
                             
-                            ${assignedPlayers.length > 0 ? 
+                            ${assignedPlayers.length > 0 ? `
                                 <div style="padding-top: 1rem; border-top: 2px solid #e5e7eb;">
                                     <strong style="font-size: 0.875rem;">Assigned Players (${assignedPlayers.length}):</strong>
                                     <div style="margin-top: 0.5rem;">
                                         ${assignedPlayers.map(p => `<span style="display: inline-block; padding: 0.25rem 0.75rem; background: #eff6ff; border-radius: 9999px; font-size: 0.75rem; margin: 0.25rem;">${p.name}</span>`).join('')}
                                     </div>
                                 </div>
-                             : ''}
+                            ` : ''}
                         </div>
-                    ;
+                    `;
                 }).join('');
             }
             
@@ -1707,7 +1707,7 @@
                 return;
             }
             
-            list.innerHTML = players.map(p => 
+            list.innerHTML = players.map(p => `
                 <div class="player-card ${p.id === currentPlayerId ? 'active' : ''}" onclick="selectPlayer('${p.id}')">
                     <div>
                         <strong style="font-size: 1.1rem;">${p.name}</strong>
@@ -1717,7 +1717,7 @@
                     </div>
                     <button onclick="deletePlayer('${p.id}'); event.stopPropagation();" class="btn-danger btn-small">Delete</button>
                 </div>
-            ).join('');
+            `).join('');
         }
         
         function selectPlayer(id) {
@@ -1933,18 +1933,18 @@
             const zones = ['z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7', 'z8', 'z9', 'z10'];
             const display = document.getElementById('effort-zones-display');
             
-            display.innerHTML = 
+            display.innerHTML = `
                 <div class="effort-zone-chart">
                     ${zones.map(z => {
                         const count = breakdown[z] || 0;
                         const height = (count / maxCount) * 100;
-                        return 
+                        return `
                             <div class="zone-bar">
                                 ${count > 0 ? `<div class="zone-count">${count}</div>` : ''}
                                 <div class="zone-fill" style="height: ${height}%; background: ${ZONE_COLORS[z]};"></div>
                                 <div class="zone-label">${z.toUpperCase()}</div>
                             </div>
-                        ;
+                        `;
                     }).join('')}
                 </div>
                 <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 0.5rem;">
@@ -1956,7 +1956,7 @@
                         <div>Z9-Z10: Max Effort (92-100%)</div>
                     </div>
                 </div>
-            ;
+            `;
         }
         
         async function saveSession() {
@@ -2024,7 +2024,7 @@
             list.innerHTML = player.sessions
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .slice(0, 10)
-                .map(s => 
+                .map(s => `
                     <div class="session-item">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                             <strong>${s.date}</strong>
@@ -2036,14 +2036,15 @@
                                 .map(([z, c]) => `<span class="zone-badge ${z}">${z.toUpperCase()}: ${c}</span>`)
                                 .join('') + '</div>' : ''}
                     </div>
-                ).join('');
+                `).join('');
         }
         
         function showTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             
             document.getElementById('players-tab').classList.toggle('hidden', tab !== 'players');
+            document.getElementById('programs-tab').classList.toggle('hidden', tab !== 'programs');
             document.getElementById('input-tab').classList.toggle('hidden', tab !== 'input');
             document.getElementById('dashboard-tab').classList.toggle('hidden', tab !== 'dashboard');
             
@@ -2052,11 +2053,17 @@
                 loadSessions();
                 renderEffortZones();
             }
+            if (tab === 'programs') {
+                loadPrograms();
+                document.getElementById('programs-list').classList.remove('hidden');
+                document.getElementById('program-builder').classList.add('hidden');
+            }
             if (tab === 'dashboard') {
                 updateCurrentPlayerDisplay();
                 loadDashboard();
             }
             if (tab === 'players') loadPlayers();
+            
         }
         
         function loadDashboard() {
@@ -2064,25 +2071,25 @@
             const content = document.getElementById('dashboard-content');
             
             if (!player) {
-                content.innerHTML = 
+                content.innerHTML = `
                     <div class="card" style="text-align: center; padding: 3rem;">
                         <h2>No player selected</h2>
                         <p style="color: #6b7280; margin-top: 0.5rem;">Select a player to view their dashboard</p>
                         <button onclick="showTab('players')" style="margin-top: 1rem;">Go to Players</button>
                     </div>
-                ;
+                `;
                 return;
             }
             
             const data = calculateACWR(player.sessions);
             
             if (!data) {
-                content.innerHTML = 
+                content.innerHTML = `
                     <div class="card" style="text-align: center; padding: 3rem;">
                         <h2>Need at least 9 sessions</h2>
                         <p style="color: #6b7280; margin-top: 0.5rem;">${player.name} has ${player.sessions?.length || 0} sessions. Add ${9 - (player.sessions?.length || 0)} more to see the dashboard!</p>
                     </div>
-                ;
+                `;
                 return;
             }
             
@@ -2093,7 +2100,7 @@
                 under: 'Ready for more work.'
             };
             
-            content.innerHTML = 
+            content.innerHTML = `
                 <div class="hero-status ${data.status}">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
@@ -2123,7 +2130,7 @@
                     </div>
                 </div>
                 
-                ${data.readiness !== '1.00' ? 
+                ${data.readiness !== '1.00' ? `
                 <div class="card" style="background: #eff6ff; border: 2px solid #bfdbfe;">
                     <h4 style="margin-bottom: 1rem;">📊 ACWR+ Analysis</h4>
                     <div class="grid-2" style="gap: 1rem; margin-bottom: 1rem;">
@@ -2135,8 +2142,8 @@
                         ${parseFloat(data.readiness) < 0.9 ? ' Consider reducing intensity or taking a recovery day.' : ''}
                     </p>
                 </div>
-                 : ''}
-            ;
+                ` : ''}
+            `;
         }
         
         // Initial load
@@ -2150,15 +2157,3 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-

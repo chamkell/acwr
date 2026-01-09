@@ -484,7 +484,7 @@
             <div id="program-builder" class="hidden">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
-                        <button onclick="()" style="padding: 0.5rem 1rem; background: #d1d5db; color: #374151; border: none; border-radius: 0.5rem; cursor: pointer; margin-right: 1rem;">← Back</button>
+                        <button onclick="backtoPrograms()" style="padding: 0.5rem 1rem; background: #d1d5db; color: #374151; border: none; border-radius: 0.5rem; cursor: pointer; margin-right: 1rem;">← Back</button>
                         <span style="font-size: 1.5rem; font-weight: 700; color: #522d80;" id="builder-program-name"></span>
                     </div>
                     <button onclick="addWeek()" class="btn-success">+ Add Week</button>
@@ -655,20 +655,21 @@
             editProgram = function(id) {
                 const program = programs.find(p => p.id === id);
                 if (!program) return;
-                
-                document.getElementById('programs-list-container').parentElement.classList.add('hidden');
+            
+                document.getElementById('programs-list').parentElement.classList.add('hidden');
                 document.getElementById('program-builder').classList.remove('hidden');
                 document.getElementById('builder-program-name').textContent = program.name;
                 document.getElementById('current-program-id').value = program.id;
-                
+            
                 loadProgramBuilder(program);
             }
                         
             backToPrograms = function() {
-                document.getElementById('programs-list-container').parentElement.classList.remove('hidden');
+                document.getElementById('programs-list').parentElement.classList.remove('hidden');
                 document.getElementById('program-builder').classList.add('hidden');
                 loadPrograms();
             }
+
             loadProgramBuilder = function(program) {
                 const container = document.getElementById('week-builder-container');
                 
@@ -1700,6 +1701,7 @@
 </body>
 
 </html>
+
 
 
 

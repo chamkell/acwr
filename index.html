@@ -627,7 +627,10 @@
                 textEl.textContent = 'Local Only';
             }
         }
-    
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
         // ========== ADVANCED PROGRAM MANAGEMENT CODE ==========
 
         let programs = JSON.parse(localStorage.getItem('acwr_programs') || '[]');
@@ -1035,6 +1038,7 @@
             loadSessions();
             renderEffortZones();
         }
+    });
     </script>
 
     <script>    
@@ -1700,3 +1704,4 @@
 </body>
 
 </html>
+
